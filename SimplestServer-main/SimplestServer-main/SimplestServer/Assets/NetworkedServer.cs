@@ -85,7 +85,7 @@ public class NetworkedServer : MonoBehaviour
         byte[] buffer = Encoding.Unicode.GetBytes(msg);
         NetworkTransport.Send(hostID, id, reliableChannelID, buffer, msg.Length * sizeof(char), out error);
     }
-    
+
     //For Recieving messages
     private void ProcessRecievedMsg(string msg, int id)
     {
@@ -94,13 +94,13 @@ public class NetworkedServer : MonoBehaviour
         string[] csv = msg.Split(',');
         int signifier = int.Parse(csv[0]);
 
-        if(signifier == ClientToServerSignifiers.CreateAccount)
+        if (signifier == ClientToServerSignifiers.CreateAccount)
         {
             string n = csv[1];
             string p = csv[2];
             bool nameInUse = false;
             //check if player account name exists
-            foreach(PlayerAccount pa in playerAccounts)
+            foreach (PlayerAccount pa in playerAccounts)
             {
                 if (pa.name == n)
                 {
@@ -109,7 +109,7 @@ public class NetworkedServer : MonoBehaviour
                 }
             }
 
-            if(nameInUse)
+            if (nameInUse)
             {
                 SendMessageToClient(ServerToClientSignifiers.AccountCreationFailed + "", id);
             }
@@ -124,7 +124,7 @@ public class NetworkedServer : MonoBehaviour
                 SavePlayerAccounts();
             }
         }
-        else if(signifier == ClientToServerSignifiers.Login)
+        else if (signifier == ClientToServerSignifiers.Login)
         {
             //check if player account name exisits,
             string n = csv[1];
@@ -134,10 +134,10 @@ public class NetworkedServer : MonoBehaviour
 
             foreach (PlayerAccount pa in playerAccounts)
             {
-                if(pa.name == n)
+                if (pa.name == n)
                 {
                     hasNameBeenFound = true;
-                    if(pa.password == p)
+                    if (pa.password == p)
                     {
                         SendMessageToClient(ServerToClientSignifiers.LoginComplete + "", id);
                         msgHasBeenSentToClient = true;
@@ -149,7 +149,7 @@ public class NetworkedServer : MonoBehaviour
                     }
                 }
 
-                if(!hasNameBeenFound && !msgHasBeenSentToClient)
+                if (!hasNameBeenFound && !msgHasBeenSentToClient)
                 {
                     SendMessageToClient(ServerToClientSignifiers.LoginFailed + "", id);
                 }
@@ -159,42 +159,43 @@ public class NetworkedServer : MonoBehaviour
         {
             Debug.Log("We need to get this player into a waiting queueue");
             //Check if the client is a player
-            if(ServerToClientSignifiers.ClientIsPlayer == int.Parse(msg))
+            //if(ServerToClientSignifiers.ClientIsPlayer == int.Parse(msg))
+            //{
+            //SendMessageToClient("Client is player", id);
+            if (playerWaitingForMatchWithID == -1)
             {
-                SendMessageToClient("Client is player", id);
-                if (playerWaitingForMatchWithID == -1)
-                {
-                    playerWaitingForMatchWithID = id;
-                }
-                else
-                {
-                    GameRoom gr = new GameRoom(playerWaitingForMatchWithID, id);
-                    gameRooms.AddLast(gr);
-
-                    SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID2);
-                    SendMessageToClient(ServerToClientSignifiers.PlayerO + "", gr.playerID2);
-                    SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID1);
-                    SendMessageToClient(ServerToClientSignifiers.PlayerX + "", gr.playerID1);
-
-                    playerWaitingForMatchWithID = -1;
-                }
+                playerWaitingForMatchWithID = id;
             }
-            //If the client is an observer
-            //TO ADD : Disable anything the client as an observer can do
-            else if(ServerToClientSignifiers.ClientIsObserver == int.Parse(msg))
+            else
             {
-                SendMessageToClient("Client is observer", id);
+                GameRoom gr = new GameRoom(playerWaitingForMatchWithID, id);
+                gameRooms.AddLast(gr);
+                Debug.Log("GameRoom Added");
+                SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID2);
+                SendMessageToClient(ServerToClientSignifiers.PlayerO + "", gr.playerID2);
+                SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID1);
+                SendMessageToClient(ServerToClientSignifiers.PlayerX + "", gr.playerID1);
 
+                Debug.Log("GameStart message sent");
+                playerWaitingForMatchWithID = -1;
             }
+            //}
         }
-        
+
+        //If the client is an observer
+        //    TO ADD : Disable anything the client as an observer can do
+        else if (ServerToClientSignifiers.ClientIsObserver == int.Parse(msg))
+        {
+            SendMessageToClient("Client is observer", id);
+
+        } 
         else if (signifier == ClientToServerSignifiers.TicTacToeSomethingPlay)
         {
             GameRoom gr = GetGameRoomWithClientID(id);
 
             if (gr != null)
             {
-                if(gr.playerID1 == id)
+                if (gr.playerID1 == id)
                 {
                     SendMessageToClient(ServerToClientSignifiers.OpponentPlay + "", gr.playerID2);
                 }
