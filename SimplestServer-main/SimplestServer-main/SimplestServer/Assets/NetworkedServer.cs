@@ -171,10 +171,10 @@ public class NetworkedServer : MonoBehaviour
                 GameRoom gr = new GameRoom(playerWaitingForMatchWithID, id);
                 gameRooms.AddLast(gr);
                 Debug.Log("GameRoom Added");
-                SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID2);
                 SendMessageToClient(ServerToClientSignifiers.PlayerO + "", gr.playerID2);
-                SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID1);
                 SendMessageToClient(ServerToClientSignifiers.PlayerX + "", gr.playerID1);
+                SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID2);
+                SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID1);
 
                 Debug.Log("GameStart message sent");
                 playerWaitingForMatchWithID = -1;
@@ -184,23 +184,29 @@ public class NetworkedServer : MonoBehaviour
 
         //If the client is an observer
         //    TO ADD : Disable anything the client as an observer can do
-        else if (ServerToClientSignifiers.ClientIsObserver == int.Parse(msg))
+        else if (signifier == ClientToServerSignifiers.ClientIsObserver)
         {
             SendMessageToClient("Client is observer", id);
 
         } 
-        else if (signifier == ClientToServerSignifiers.TicTacToeSomethingPlay)
+        else if (signifier == ClientToServerSignifiers.OpponentPlay)
         {
             GameRoom gr = GetGameRoomWithClientID(id);
-
+            Debug.Log("OpponentPlay Called");
             if (gr != null)
             {
                 if (gr.playerID1 == id)
                 {
-                    SendMessageToClient(ServerToClientSignifiers.OpponentPlay + "", gr.playerID2);
+                    Debug.Log(csv[1] + "" + "," + csv[2] + "");
+                    SendMessageToClient(ServerToClientSignifiers.OpponentPlay + "," + csv[1] + "," + csv[2], gr.playerID2);
+                    //                                   Goes to OpponentPlay       Button Num  Player Side (X or O)
                 }
                 else
-                    SendMessageToClient(ServerToClientSignifiers.OpponentPlay + "", gr.playerID1);
+                {
+                    Debug.Log(csv[1] + "" + "," + csv[2] + "");
+                    SendMessageToClient(ServerToClientSignifiers.OpponentPlay + "," + csv[1] + "," + csv[2], gr.playerID1);
+                }
+
 
             }
             //Get The game room that the client id is in
@@ -301,6 +307,7 @@ public static class ClientToServerSignifiers
     public const int ClientLost = 8;
     public const int PlayerX = 9;
     public const int PlayerO = 10;
+    public const int OpponentPlay = 11;
 }
 
 public static class ServerToClientSignifiers
