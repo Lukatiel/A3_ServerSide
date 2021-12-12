@@ -215,6 +215,29 @@ public class NetworkedServer : MonoBehaviour
 
         }
 
+        else if (signifier == ClientToServerSignifiers.GameOver)
+        {
+            GameRoom gr = GetGameRoomWithClientID(id);
+            string Winningplayer = csv[1];
+            Debug.Log("Game Over Called");
+            if (gr != null)
+            {
+                if (gr.playerID1 == id)
+                {
+                    
+                    SendMessageToClient(ServerToClientSignifiers.GameOver + "," + csv[1], gr.playerID2);
+                    
+                }
+                else
+                {
+                    Debug.Log(csv[1] + "" + "," + csv[2] + "");
+                    SendMessageToClient(ServerToClientSignifiers.GameOver + "," + csv[1], gr.playerID1);
+                }
+
+
+            }
+        }
+
     }
 
 
@@ -308,6 +331,7 @@ public static class ClientToServerSignifiers
     public const int PlayerX = 9;
     public const int PlayerO = 10;
     public const int OpponentPlay = 11;
+    public const int GameOver = 12;
 }
 
 public static class ServerToClientSignifiers
@@ -324,4 +348,5 @@ public static class ServerToClientSignifiers
     public const int ClientLost = 10;
     public const int PlayerX = 11;
     public const int PlayerO = 12;
+    public const int GameOver = 13;
 }
